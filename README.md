@@ -8,4 +8,4 @@ A tool for designers to generate structured, client-ready creative briefs in und
 **Live:** https://vkpillai.github.io/design-brief-generator/
 
 Built with: HTML · CSS · Vanilla JavaScript  
-By: VK — 2171 Visual Universe
+By: VK - 2171 Visual Universe
