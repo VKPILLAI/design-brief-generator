@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Brief Generator — 2171 Visual Universe</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #181818;
+    --border: #242424;
+    --border-hover: #383838;
+    --accent: #c8f04a;
+    --accent-dim: rgba(200, 240, 74, 0.12);
+    --accent-dim2: rgba(200, 240, 74, 0.06);
+    --text-primary: #f0f0ee;
+    --text-secondary: #888880;
+    --text-muted: #444440;
+    --danger: #e05252;
+    --tag-bg: #1e1e1e;
+    --radius: 6px;
+    --radius-lg: 12px;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+    --serif: 'Fraunces', serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ─── LAYOUT ─── */
+  .page-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 24px;
+    width: 100%;
+    position: relative; z-index: 1;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    padding: 48px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .header-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .header-meta span {
+    color: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.1;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+  }
+
+  h1 strong {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .header-sub {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 480px;
+  }
+
+  /* ─── SECTION LABEL ─── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ─── FORM ─── */
+  .form-section {
+    margin-bottom: 40px;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field-grid.full {
+    grid-template-columns: 1fr;
+  }
+
+  @media (max-width: 540px) {
+    .field-grid { grid-template-columns: 1fr; }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888880' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  .field select option {
+    background: #181818;
+    color: var(--text-primary);
+  }
+
+  .field textarea { resize: vertical; min-height: 90px; line-height: 1.55; }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* ─── TAG SELECTOR ─── */
+  .tag-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    color: var(--text-secondary);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .tag:hover {
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+  }
+
+  .tag.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ─── GENERATE BUTTON ─── */
+  .btn-generate {
+    width: 100%;
+    padding: 16px 28px;
+    background: var(--accent);
+    color: #0a0a0a;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-generate:hover { background: #d9ff55; transform: translateY(-1px); }
+  .btn-generate:active { transform: translateY(0); }
+
+  .btn-generate.loading {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    pointer-events: none;
+  }
+
+  /* ─── BRIEF OUTPUT ─── */
+  #brief-output {
+    display: none;
+    margin-top: 48px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .brief-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .brief-project-name {
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--text-primary);
+    line-height: 1.15;
+  }
+
+  .brief-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    margin-top: 6px;
+  }
+
+  .btn-copy, .btn-reset {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-copy:hover, .btn-reset:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-copy.copied { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+
+  .brief-actions {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    flex-shrink: 0;
+  }
+
+  /* ─── BRIEF BLOCKS ─── */
+  .brief-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 540px) {
+    .brief-grid { grid-template-columns: 1fr; }
+  }
+
+  .brief-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+  }
+
+  .brief-block.full { grid-column: 1 / -1; }
+
+  .brief-block.accent-block {
+    background: var(--accent-dim2);
+    border-color: rgba(200, 240, 74, 0.2);
+  }
+
+  .brief-block-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .brief-block-value {
+    font-size: 14.5px;
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+
+  .brief-block-value.large {
+    font-size: 16px;
+    font-style: italic;
+    font-family: var(--serif);
+    font-weight: 300;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  .brief-block-value ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .brief-block-value ul li::before {
+    content: '→ ';
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .brief-block-value .pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .brief-block-value .pill {
+    background: var(--accent-dim);
+    border: 1px solid rgba(200, 240, 74, 0.3);
+    border-radius: 40px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 12px;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    margin-top: auto;
+    padding: 32px 0 28px;
+    border-top: 1px solid var(--border);
+    margin-top: 64px;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-brand {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .footer-brand strong {
+    color: var(--accent);
+  }
+
+  .footer-note {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+
+  /* ─── ERROR ─── */
+  .field-error {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--danger);
+    letter-spacing: 0.06em;
+    display: none;
+  }
+
+  .field.has-error input,
+  .field.has-error select {
+    border-color: var(--danger);
+  }
+
+  .field.has-error .field-error { display: block; }
+
+  /* ─── SCROLL HINT ─── */
+  .scroll-cue {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-align: center;
+    padding: 12px;
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <header>
+    <p class="header-meta">Tool v1.0 — <span>2171 Visual Universe</span> — Design Brief Generator</p>
+    <h1>Build your <strong>creative brief</strong><br>in under two minutes.</h1>
+    <p class="header-sub">Fill in the details below. The generator structures a client-ready creative brief you can share, copy, or save — instantly.</p>
+  </header>
+
+  <!-- FORM -->
+  <form id="brief-form" novalidate>
+
+    <div class="form-section">
+      <p class="section-label">01 — Client Info</p>
+      <div class="field-grid" style="margin-bottom:16px">
+        <div class="field" id="f-client-name">
+          <label for="client-name">Client / Brand Name</label>
+          <input type="text" id="client-name" placeholder="e.g. Trion Dental" autocomplete="off">
+          <span class="field-error">This field is required</span>
+        </div>
+        <div class="field" id="f-client-type">
+          <label for="client-type">Client Type</label>
+          <select id="client-type">
+            <option value="" disabled selected>Select one</option>
+            <option>Startup</option>
+            <option>Established Business</option>
+            <option>Personal Brand</option>
+            <option>NGO / Non-profit</option>
+            <option>Creative Agency</option>
+            <option>Enterprise / Corporate</option>
+            <option>Individual / Freelancer</option>
+          </select>
+          <span class="field-error">Please select a type</span>
+        </div>
+      </div>
+      <div class="field-grid">
+        <div class="field" id="f-industry">
+          <label for="industry">Industry / Sector</label>
+          <select id="industry">
+            <option value="" disabled selected>Select one</option>
+            <option>Health & Wellness</option>
+            <option>Fashion & Apparel</option>
+            <option>Food & Beverage</option>
+            <option>Technology / SaaS</option>
+            <option>Real Estate</option>
+            <option>Finance & Banking</option>
+            <option>Photography / Film</option>
+            <option>Education</option>
+            <option>Retail / E-commerce</option>
+            <option>Beauty & Cosmetics</option>
+            <option>Architecture / Interiors</option>
+            <option>Jewellery & Luxury</option>
+            <option>Entertainment / Media</option>
+            <option>Travel & Hospitality</option>
+            <option>Other</option>
+          </select>
+          <span class="field-error">Please select an industry</span>
+        </div>
+        <div class="field">
+          <label for="target-audience">Target Audience</label>
+          <input type="text" id="target-audience" placeholder="e.g. Urban millennials, 25–35" autocomplete="off">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <p class="section-label">02 — Project Scope</p>
+      <div class="field-grid" style="margin-bottom:16px">
+        <div class="field" id="f-project-type">
+          <label for="project-type">Project Type</label>
+          <select id="project-type">
+            <option value="" disabled selected>Select one</option>
+            <option>Brand Identity</option>
+            <option>Social Media Creatives</option>
+            <option>Website Design</option>
+            <option>Packaging Design</option>
+            <option>Print / Campaign</option>
+            <option>Pitch Deck / Presentation</option>
+            <option>Logo Design</option>
+            <option>Motion / Video</option>
+            <option>Photo / Art Direction</option>
+            <option>Full Brand Refresh</option>
+          </select>
+          <span class="field-error">Please select a project type</span>
+        </div>
+        <div class="field" id="f-timeline">
+          <label for="timeline">Timeline</label>
+          <select id="timeline">
+            <option value="" disabled selected>Select one</option>
+            <option>Rush — 1–3 days</option>
+            <option>Short — 1 week</option>
+            <option>Standard — 2–3 weeks</option>
+            <option>Comfortable — 1 month</option>
+            <option>Extended — 2+ months</option>
+            <option>Ongoing / Retainer</option>
+          </select>
+          <span class="field-error">Please select a timeline</span>
+        </div>
+      </div>
+      <div class="field full">
+        <label for="project-goal">Core Objective <span style="color:var(--text-muted); font-style:italic; font-size:10px;">— what does success look like?</span></label>
+        <textarea id="project-goal" placeholder="e.g. Redesign brand identity to attract premium clientele ahead of clinic expansion..."></textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <p class="section-label">03 — Creative Direction</p>
+      <div style="margin-bottom: 20px;">
+        <p class="field"><label style="display:block; margin-bottom:12px;">Visual Vibe / Mood <span style="color:var(--text-muted); font-style:italic; font-size:10px;">— select all that apply</span></label>
+          <span class="tag-group" id="vibe-tags">
+            <span class="tag" data-val="Minimal & Clean">Minimal & Clean</span>
+            <span class="tag" data-val="Bold & High-contrast">Bold & High-contrast</span>
+            <span class="tag" data-val="Luxury & Refined">Luxury & Refined</span>
+            <span class="tag" data-val="Warm & Earthy">Warm & Earthy</span>
+            <span class="tag" data-val="Dark & Editorial">Dark & Editorial</span>
+            <span class="tag" data-val="Playful & Vibrant">Playful & Vibrant</span>
+            <span class="tag" data-val="Futuristic & Tech">Futuristic & Tech</span>
+            <span class="tag" data-val="Soft & Pastel">Soft & Pastel</span>
+            <span class="tag" data-val="Organic & Handcrafted">Organic & Handcrafted</span>
+            <span class="tag" data-val="Classic & Timeless">Classic & Timeless</span>
+          </span>
+        </p>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="ref-brands">Reference Brands / Inspirations</label>
+          <input type="text" id="ref-brands" placeholder="e.g. Apple, Aesop, Oatly" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="avoid">What to Avoid</label>
+          <input type="text" id="avoid" placeholder="e.g. Neon colours, stock photography" autocomplete="off">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <p class="section-label">04 — Deliverables & Notes</p>
+      <div class="field-grid" style="margin-bottom:16px">
+        <div class="field">
+          <label for="file-formats">File Formats Required</label>
+          <input type="text" id="file-formats" placeholder="e.g. AI, PDF, PNG, MP4" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="budget">Budget Range (optional)</label>
+          <input type="text" id="budget" placeholder="e.g. ₹25,000 – ₹40,000" autocomplete="off">
+        </div>
+      </div>
+      <div class="field full">
+        <label for="extra-notes">Additional Notes / Constraints</label>
+        <textarea id="extra-notes" placeholder="Any legal constraints, existing brand guidelines to follow, stakeholder preferences..."></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-generate" id="generate-btn">Generate Creative Brief →</button>
+
+  </form>
+
+  <!-- OUTPUT -->
+  <div id="brief-output">
+    <div class="brief-header">
+      <div>
+        <div class="brief-project-name" id="out-project-name"></div>
+        <div class="brief-id" id="out-brief-id"></div>
+      </div>
+      <div class="brief-actions">
+        <button class="btn-copy" id="copy-btn" onclick="copyBrief()">Copy Brief</button>
+        <button class="btn-reset" onclick="resetForm()">New Brief</button>
+      </div>
+    </div>
+
+    <div class="brief-grid">
+      <div class="brief-block">
+        <div class="brief-block-label">Client</div>
+        <div class="brief-block-value" id="out-client"></div>
+      </div>
+      <div class="brief-block">
+        <div class="brief-block-label">Project Type</div>
+        <div class="brief-block-value" id="out-project-type"></div>
+      </div>
+      <div class="brief-block">
+        <div class="brief-block-label">Industry</div>
+        <div class="brief-block-value" id="out-industry"></div>
+      </div>
+      <div class="brief-block">
+        <div class="brief-block-label">Timeline</div>
+        <div class="brief-block-value" id="out-timeline"></div>
+      </div>
+    </div>
+
+    <div class="brief-grid" style="margin-top:12px">
+      <div class="brief-block full accent-block">
+        <div class="brief-block-label">Core Objective</div>
+        <div class="brief-block-value large" id="out-objective"></div>
+      </div>
+    </div>
+
+    <div class="brief-grid" style="margin-top:12px">
+      <div class="brief-block">
+        <div class="brief-block-label">Target Audience</div>
+        <div class="brief-block-value" id="out-audience"></div>
+      </div>
+      <div class="brief-block">
+        <div class="brief-block-label">Budget</div>
+        <div class="brief-block-value" id="out-budget"></div>
+      </div>
+    </div>
+
+    <div class="brief-grid" style="margin-top:12px">
+      <div class="brief-block full">
+        <div class="brief-block-label">Visual Direction & Mood</div>
+        <div class="brief-block-value" id="out-vibe"></div>
+      </div>
+    </div>
+
+    <div class="brief-grid" style="margin-top:12px">
+      <div class="brief-block">
+        <div class="brief-block-label">Reference Brands</div>
+        <div class="brief-block-value" id="out-refs"></div>
+      </div>
+      <div class="brief-block">
+        <div class="brief-block-label">Avoid</div>
+        <div class="brief-block-value" id="out-avoid"></div>
+      </div>
+    </div>
+
+    <div class="brief-grid" style="margin-top:12px">
+      <div class="brief-block full">
+        <div class="brief-block-label">Suggested Deliverables</div>
+        <div class="brief-block-value" id="out-deliverables"></div>
+      </div>
+    </div>
+
+    <div class="brief-grid" style="margin-top:12px" id="out-notes-wrap">
+      <div class="brief-block full">
+        <div class="brief-block-label">Additional Notes</div>
+        <div class="brief-block-value" id="out-notes"></div>
+      </div>
+    </div>
+
+    <div class="brief-grid" style="margin-top:12px">
+      <div class="brief-block full">
+        <div class="brief-block-label">File Formats</div>
+        <div class="brief-block-value" id="out-formats"></div>
+      </div>
+    </div>
+
+    <p class="scroll-cue" style="margin-top:32px">↑ Brief generated — copy or start a new one above</p>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner page-wrap" style="padding:0">
+      <span class="footer-brand"><strong>2171 Visual Universe</strong> — Design Brief Generator</span>
+      <span class="footer-note">Built for designers, by a designer.</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // Tag selection
+  document.querySelectorAll('#vibe-tags .tag').forEach(tag => {
+    tag.addEventListener('click', () => tag.classList.toggle('active'));
+  });
+
+  // Deliverables map
+  const deliverableMap = {
+    'Brand Identity':           ['Primary logo (full + variations)','Colour palette + typography system','Brand usage guidelines (PDF)','Business card / stationery mockup','Social media profile assets'],
+    'Social Media Creatives':   ['Feed post templates (3–5 formats)','Story / Reel templates','Highlight cover icons','Caption tone-of-voice notes','Exported assets (PNG + video)'],
+    'Website Design':           ['Wireframes (low-fi)','High-fidelity UI mockups','Mobile-responsive layouts','Handoff files (Figma / HTML)','Asset export pack'],
+    'Packaging Design':         ['Dieline template','Front / back / side artwork','Mockup renders (2+ angles)','Print-ready PDF','Retailer-ready spec sheet'],
+    'Print / Campaign':         ['Print-ready artwork files','Campaign visual system','A4 + billboard adaptations','Mockup renders','Source files (AI / INDD)'],
+    'Pitch Deck / Presentation':['Slide template (10–15 slides)','Icon & illustration set','Speaker notes structure','PDF export','Editable source file'],
+    'Logo Design':              ['3 initial concepts','Chosen concept refinement','Final logo in all orientations','Colour + B&W + reversed variants','File pack (AI, EPS, SVG, PNG, PDF)'],
+    'Motion / Video':           ['Script / storyboard','Raw edit','Motion graphics integration','Colour grade','Final export (MP4, MOV, GIF)'],
+    'Photo / Art Direction':    ['Mood board','Shot list','On-set direction','Edited selects','Retouched finals (hi-res + web)'],
+    'Full Brand Refresh':       ['Brand audit report','Updated logo + identity system','New brand guidelines document','Digital asset pack','Stakeholder presentation deck'],
+  };
+
+  function getDeliverables(projectType) {
+    return deliverableMap[projectType] || ['Finalised design files','Source files (editable)','Export pack (web + print)','Presentation mockup','PDF summary document'];
+  }
+
+  function generateBriefId() {
+    const now = new Date();
+    const y = now.getFullYear().toString().slice(-2);
+    const m = String(now.getMonth() + 1).padStart(2,'0');
+    const d = String(now.getDate()).padStart(2,'0');
+    const rand = Math.random().toString(36).slice(2,6).toUpperCase();
+    return `BRIEF-${y}${m}${d}-${rand}`;
+  }
+
+  function validate() {
+    const required = [
+      { id: 'client-name', field: 'f-client-name' },
+      { id: 'client-type', field: 'f-client-type' },
+      { id: 'industry',    field: 'f-industry' },
+      { id: 'project-type',field: 'f-project-type' },
+      { id: 'timeline',    field: 'f-timeline' },
+    ];
+    let valid = true;
+    required.forEach(({ id, field }) => {
+      const el = document.getElementById(id);
+      const wrap = document.getElementById(field);
+      if (!el.value.trim() || el.value === '') {
+        wrap && wrap.classList.add('has-error');
+        valid = false;
+      } else {
+        wrap && wrap.classList.remove('has-error');
+      }
+    });
+    return valid;
+  }
+
+  document.getElementById('brief-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const btn = document.getElementById('generate-btn');
+    btn.textContent = 'Generating...';
+    btn.classList.add('loading');
+
+    setTimeout(() => {
+      buildBrief();
+      btn.textContent = 'Generate Creative Brief →';
+      btn.classList.remove('loading');
+    }, 600);
+  });
+
+  function buildBrief() {
+    const clientName   = document.getElementById('client-name').value.trim();
+    const clientType   = document.getElementById('client-type').value;
+    const industry     = document.getElementById('industry').value;
+    const audience     = document.getElementById('target-audience').value.trim();
+    const projectType  = document.getElementById('project-type').value;
+    const timeline     = document.getElementById('timeline').value;
+    const goal         = document.getElementById('project-goal').value.trim();
+    const refs         = document.getElementById('ref-brands').value.trim();
+    const avoid        = document.getElementById('avoid').value.trim();
+    const formats      = document.getElementById('file-formats').value.trim();
+    const budget       = document.getElementById('budget').value.trim();
+    const notes        = document.getElementById('extra-notes').value.trim();
+    const vibes        = [...document.querySelectorAll('#vibe-tags .tag.active')].map(t => t.dataset.val);
+
+    // Project name header
+    document.getElementById('out-project-name').textContent = `${clientName} — ${projectType}`;
+    document.getElementById('out-brief-id').textContent = generateBriefId() + ' · Generated ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+    // Meta blocks
+    document.getElementById('out-client').textContent    = `${clientName} (${clientType})`;
+    document.getElementById('out-project-type').textContent = projectType;
+    document.getElementById('out-industry').textContent  = industry;
+    document.getElementById('out-timeline').textContent  = timeline;
+    document.getElementById('out-audience').textContent  = audience || 'Not specified';
+    document.getElementById('out-budget').textContent    = budget || 'Not specified';
+
+    // Objective
+    document.getElementById('out-objective').textContent = goal || `Deliver a high-quality ${projectType.toLowerCase()} that positions ${clientName} effectively within the ${industry.toLowerCase()} space.`;
+
+    // Vibe pills
+    const vibeContainer = document.getElementById('out-vibe');
+    if (vibes.length) {
+      vibeContainer.innerHTML = '<div class="pill-list">' + vibes.map(v => `<span class="pill">${v}</span>`).join('') + '</div>';
+    } else {
+      vibeContainer.textContent = 'No specific mood selected — open to creative direction.';
+    }
+
+    // Refs & Avoid
+    document.getElementById('out-refs').textContent  = refs  || 'No references provided';
+    document.getElementById('out-avoid').textContent = avoid || 'No restrictions specified';
+
+    // Deliverables
+    const deliverables = getDeliverables(projectType);
+    const delEl = document.getElementById('out-deliverables');
+    delEl.innerHTML = '<ul>' + deliverables.map(d => `<li>${d}</li>`).join('') + '</ul>';
+
+    // Notes
+    const notesWrap = document.getElementById('out-notes-wrap');
+    if (notes) {
+      document.getElementById('out-notes').textContent = notes;
+      notesWrap.style.display = '';
+    } else {
+      notesWrap.style.display = 'none';
+    }
+
+    // Formats
+    document.getElementById('out-formats').textContent = formats || 'To be confirmed with client';
+
+    // Show output
+    const output = document.getElementById('brief-output');
+    output.style.display = 'block';
+    output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function copyBrief() {
+    const blocks = document.querySelectorAll('#brief-output .brief-block');
+    let text = document.getElementById('out-project-name').textContent + '\n';
+    text += document.getElementById('out-brief-id').textContent + '\n\n';
+    blocks.forEach(block => {
+      const label = block.querySelector('.brief-block-label');
+      const value = block.querySelector('.brief-block-value');
+      if (label && value) {
+        text += label.textContent.toUpperCase() + '\n';
+        text += (value.innerText || value.textContent) + '\n\n';
+      }
+    });
+    navigator.clipboard.writeText(text.trim()).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copied ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy Brief'; btn.classList.remove('copied'); }, 2200);
+    });
+  }
+
+  function resetForm() {
+    document.getElementById('brief-form').reset();
+    document.querySelectorAll('#vibe-tags .tag').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.field').forEach(f => f.classList.remove('has-error'));
+    document.getElementById('brief-output').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
